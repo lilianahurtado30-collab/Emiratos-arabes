@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word Search: Traditional Emirati Clothing</title>
+<style>
+:root{font-family:system-ui,Arial,sans-serif;color:#172033;background:#f5f7fb}
+body{margin:0;padding:22px;display:flex;justify-content:center}
+main{max-width:760px;width:100%;background:white;padding:22px;border-radius:18px;box-shadow:0 8px 28px #17203318}
+h1{font-size:clamp(1.45rem,4vw,2rem);margin:0 0 8px}
+p{line-height:1.5}
+.board{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;margin:18px auto;max-width:520px}
+.cell{aspect-ratio:1;border:1px solid #d8deea;border-radius:6px;background:#f8faff;font-weight:700;font-size:clamp(13px,3.5vw,20px);cursor:pointer}
+.cell.selected{background:#c9e6ff;border-color:#3988c9}
+.words{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.word{padding:8px;border-radius:8px;background:#f0f3f8}
+.word.done{text-decoration:line-through;background:#d9f3e1}
+button.action{padding:10px 14px;border:0;border-radius:9px;background:#174f82;color:white;font-weight:700;cursor:pointer}
+#status{font-weight:700;color:#174f82;min-height:1.5em}
+small{color:#586579}
+</style>
+</head>
+<body>
+<main>
+<h1>🇦🇪 Word Search: Traditional Emirati Clothing</h1>
+<p>Find all 10 hidden words! Tap the first letter and then the last letter of each word. Words can go horizontally, vertically, or diagonally, in either direction.</p>
+<div id="board" class="board" aria-label="Word search puzzle"></div>
+<h2>Words to find</h2>
+<div id="words" class="words"></div>
+<p id="status" aria-live="polite">Start searching!</p>
+<button class="action" onclick="resetGame()">Restart game</button>
+<h2>Learn about the clothing</h2>
+<ul>
+<li><b>Kandura:</b> a long traditional robe worn by many men.</li>
+<li><b>Abaya:</b> a long, loose outer garment worn by many women.</li>
+<li><b>Ghutra:</b> a traditional headscarf.</li>
+<li><b>Sheila:</b> a scarf worn by many women.</li>
+<li><b>Hijab:</b> a head covering worn by some Muslim women.</li>
+<li><b>Bisht:</b> a traditional cloak worn over the kandura.</li>
+<li><b>Ghafiya:</b> a small cap worn under a headscarf.</li>
+<li><b>Nikab:</b> a face veil worn by some women.</li>
+<li><b>Mishlah:</b> a traditional outer cloak.</li>
+<li><b>Turbante:</b> a wrapped head covering.</li>
+</ul>
+<small>Educational activity about traditional clothing in the United Arab Emirates.</small>
+</main>
+<script>
+const N=12, grid=Array.from({length:N},()=>Array(N).fill(""));
+const placements=[
+["KANDURA",0,0,0,1],["ABAYA",2,1,1,0],["HIJAB",0,7,1,0],
+["GHUTRA",4,0,0,1],["SHEILA",7,1,0,1],["BISHT",1,10,1,0],
+["GHAFIYA",5,3,1,1],["NIKAB",11,2,0,1],["MISHLAH",9,0,0,1],
+["TURBANTE",2,2,1,1]
+];
+const targets=placements.map(p=>p[0]);
+for(const [w,r,c,dr,dc] of placements) [...w].forEach((ch,i)=>grid[r+i*dr][c+i*dc]=ch);
+const alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!grid[r][c])grid[r][c]=alphabet[Math.floor(Math.random()*alphabet.length)];
+let start=null, selected=[], found=new Set();
+const board=document.getElementById("board"), wordBox=document.getElementById("words");
+function render(){
+ board.innerHTML="";
+ grid.forEach((line,r)=>line.forEach((ch,c)=>{
+  const b=document.createElement("button");b.className="cell";b.textContent=ch;
+  b.setAttribute("aria-label",`Row ${r+1}, column ${c+1}, ${ch}`);
+  if(selected.some(([x,y])=>x===r&&y===c))b.classList.add("selected");
+  b.onclick=()=>tap(r,c);board.appendChild(b);
+ }));
+ wordBox.innerHTML="";
+ targets.forEach(w=>{const d=document.createElement("div");d.className="word"+(found.has(w)?" done":"");d.textContent=(found.has(w)?"✓ ":"• ")+w;wordBox.appendChild(d)});
+ document.getElementById("status").textContent=found.size===targets.length?"Excellent! You found every word. 🎉":`Found: ${found.size} of ${targets.length}`;
+}
+function tap(r,c){
+ if(!start){start=[r,c];selected=[[r,c]];render();return}
+ const [r0,c0]=start,dr=Math.sign(r-r0),dc=Math.sign(c-c0),len=Math.max(Math.abs(r-r0),Math.abs(c-c0))+1;
+ if(!(r===r0||c===c0||Math.abs(r-r0)===Math.abs(c-c0))){start=[r,c];selected=[[r,c]];render();return}
+ const path=Array.from({length:len},(_,i)=>[r0+dr*i,c0+dc*i]);
+ const word=path.map(([x,y])=>grid[x][y]).join("");
+ const reverse=word.split("").reverse().join("");
+ if(targets.includes(word))found.add(word);
+ else if(targets.includes(reverse))found.add(reverse);
+ selected=path;start=null;render();
+}
+function resetGame(){found.clear();selected=[];start=null;render()}
+render();
+</script>
+</body></html>
